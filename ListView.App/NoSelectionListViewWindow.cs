@@ -1,12 +1,13 @@
 namespace ListView.App;
 
+using System.Reflection;
 using Gtk;
+using GObject;
 using static Gtk.SignalListItemFactory;
+using GLib;
 
 public class NoSelectionListViewWindow : Window
 {
-    private readonly ListView _listView;
-
     public NoSelectionListViewWindow()
         : base()
     {
@@ -19,11 +20,27 @@ public class NoSelectionListViewWindow : Window
         listItemFactory.OnSetup += SetupSignalHandler;
         listItemFactory.OnBind += BindSignalHandler;
 
-        _listView = ListView.New(selectionModel, listItemFactory);
+        var listView = ListView.New(selectionModel, listItemFactory);
 
         var scrolledWindow = ScrolledWindow.New();
-        scrolledWindow.Child = _listView;
-        Child = scrolledWindow;
+        scrolledWindow.Child = listView;
+        scrolledWindow.WidthRequest = 150;
+
+        var singleSelectionModel = SingleSelection.New(stringList);
+        var bytes = Assembly.GetExecutingAssembly()
+            .ReadResourceAsByteArray("ListItemTemplate.ui");
+        var builderListItemFactory = BuilderListItemFactory.NewFromBytes(null, Bytes.New(bytes));
+        var listViewRight = ListView.New(singleSelectionModel, builderListItemFactory);
+
+        var scrolledWindowRight = ScrolledWindow.New();
+        scrolledWindowRight.WidthRequest = 150;
+        scrolledWindowRight.Child = listViewRight;
+
+        var gtkBox = Gtk.Box.New(Gtk.Orientation.Horizontal, 0);
+        gtkBox.Append(scrolledWindow);
+        gtkBox.Append(scrolledWindowRight);
+
+        Child = gtkBox;
     }
 
     private void SetupSignalHandler(SignalListItemFactory sender, SetupSignalArgs args)

@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="**\*.ui" />
+    <EmbeddedResource Include="**/*.ui">
+      <LogicalName>%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  
+  <ItemGroup>
     <PackageReference Include="GirCore.Gtk-4.0" Version="0.5.0-preview.4" />
   </ItemGroup>
 

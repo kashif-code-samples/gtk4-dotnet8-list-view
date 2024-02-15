@@ -54,8 +54,6 @@ Here is the code for the class.
 ```csharp
 public class NoSelectionListViewWindow : Window
 {
-    private readonly ListView _listView;
-
     public NoSelectionListViewWindow()
         : base()
     {
@@ -68,10 +66,10 @@ public class NoSelectionListViewWindow : Window
         listItemFactory.OnSetup += SetupSignalHandler;
         listItemFactory.OnBind += BindSignalHandler;
 
-        _listView = ListView.New(selectionModel, listItemFactory);
+        var listView = ListView.New(selectionModel, listItemFactory);
 
         var scrolledWindow = ScrolledWindow.New();
-        scrolledWindow.Child = _listView;
+        scrolledWindow.Child = listView;
         Child = scrolledWindow;
     }
 
@@ -150,6 +148,53 @@ And clicking on that button will open a new window with a simple list as follows
   <a href="images/03-list-view-window.png"><img src="images/03-list-view-window.png"></a>
   <figcaption>Empty Window</figcaption>
 </figure>  
+
+## BuilderListItemFactory
+We can also use the `BuilderListItemFactory` instead of `SignalListItemFactory`, this allows us the define the behaviour in ui file instead of writing the signal handlers in code.
+I have added the following ui file copied from [article](https://toshiocp.github.io/Gtk4-tutorial/sec29.html) by TochioCP.
+```xml
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkLabel">
+        <binding name="label">
+          <lookup name="string" type="GtkStringObject">
+            <lookup name="item">GtkListItem</lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>
+```
+
+I have added another scrolled window and list view in `NoSelectionListViewWindow`. `ListItemTemplate.ui` file is set as Embedded Resource and for `ReadResourceAsByteArray` we would need to add `using GObject;`. Following code is added replacing last line of the constructor.
+```csharp
+        scrolledWindow.WidthRequest = 150;
+
+        var singleSelectionModel = SingleSelection.New(stringList);
+        var bytes = Assembly.GetExecutingAssembly()
+            .ReadResourceAsByteArray("ListItemTemplate.ui");
+        var builderListItemFactory = BuilderListItemFactory.NewFromBytes(null, Bytes.New(bytes));
+        var listViewRight = ListView.New(singleSelectionModel, builderListItemFactory);
+
+        var scrolledWindowRight = ScrolledWindow.New();
+        scrolledWindowRight.WidthRequest = 150;
+        scrolledWindowRight.Child = listViewRight;
+
+        var gtkBox = Gtk.Box.New(Gtk.Orientation.Horizontal, 0);
+        gtkBox.Append(scrolledWindow);
+        gtkBox.Append(scrolledWindowRight);
+
+        Child = gtkBox;
+```
+
+Running the sample now produces following window.  
+<figure>
+  <a href="images/04-two-list-views.png"><img src="images/04-two-list-views.png"></a>
+  <figcaption>Empty Window</figcaption>
+</figure>  
+
 
 ## Source
 Source code for the sample application is available on GitHub in [gtk4-dotnet8-list-view](https://github.com/kashif-code-samples/gtk4-dotnet8-list-view) repository.
