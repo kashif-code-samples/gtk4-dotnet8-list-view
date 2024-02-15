@@ -41,7 +41,7 @@ Running the application, will display an empty window.
 
 ## No Selection ListView
 Next lets enhance our sample application to add a window that has a simple `ListView` with no selection.
-First lets add a new class `NoSelectionListViewWindow` inherting from `Gtk.Window` to our project.
+First lets add a new class `CodeListViewWindow` inherting from `Gtk.Window` to our project.
 `ListView` will need 2 objects,
 * SelctionModel - is an interface to support selection of items
 * ListItemFactory - creates or recycles GtkListItem and connects it with an item of the list model.
@@ -52,9 +52,9 @@ You might get a warning on `ListView` is a namespace but being used as a type, t
 
 Here is the code for the class.
 ```csharp
-public class NoSelectionListViewWindow : Window
+public class CodeListViewWindow : Window
 {
-    public NoSelectionListViewWindow()
+    public CodeListViewWindow()
         : base()
     {
         Title = "No Selection ListView";
@@ -110,11 +110,11 @@ Update the `OnActivate` handler as follows.
 ```csharp
 application.OnActivate += (sender, args) =>
 {
-    var buttonShowNoSelectionListView = CreateButton("Show No Selection ListView");
-    buttonShowNoSelectionListView.OnClicked += (_, _) => new NoSelectionListViewWindow().Show();
+    var buttonShowCodeListView = CreateButton("Show Code ListView Window");
+    buttonShowCodeListView.OnClicked += (_, _) => new CodeListViewWindow().Show();
 
     var gtkBox = Gtk.Box.New(Gtk.Orientation.Vertical, 0);
-    gtkBox.Append(buttonShowNoSelectionListView);
+    gtkBox.Append(buttonShowCodeListView);
 
     var window = Gtk.ApplicationWindow.New((Gtk.Application) sender);
     window.Title = "ListView Sample";
@@ -140,13 +140,13 @@ static Gtk.Button CreateButton(string label)
 Running the application will show our application window with a button.  
 <figure>
   <a href="images/02-app-window-with-button.png"><img src="images/02-app-window-with-button.png"></a>
-  <figcaption>Empty Window</figcaption>
+  <figcaption>Application Window</figcaption>
 </figure>  
 
 And clicking on that button will open a new window with a simple list as follows.  
 <figure>
-  <a href="images/03-list-view-window.png"><img src="images/03-list-view-window.png"></a>
-  <figcaption>Empty Window</figcaption>
+  <a href="images/03-code-list-view-window.png"><img src="images/03-code-list-view-window.png"></a>
+  <figcaption>Code List View Window</figcaption>
 </figure>  
 
 ## BuilderListItemFactory
@@ -168,33 +168,50 @@ I have added the following ui file copied from [article](https://toshiocp.github
 </interface>
 ```
 
-I have added another scrolled window and list view in `NoSelectionListViewWindow`. `ListItemTemplate.ui` file is set as Embedded Resource and for `ReadResourceAsByteArray` we would need to add `using GObject;`. Following code is added replacing last line of the constructor.
+Next I have added another class `TemplateListViewWindow` with following content. `ListItemTemplate.ui` file is set as Embedded Resource and for `ReadResourceAsByteArray` we would need to add `using GObject;`.
 ```csharp
-        scrolledWindow.WidthRequest = 150;
+using System.Reflection;
+using Gtk;
+using GObject;
+using GLib;
 
-        var singleSelectionModel = SingleSelection.New(stringList);
+public class TemplateListViewWindow : Window
+{
+    public TemplateListViewWindow()
+        : base()
+    {
+        Title = "Template ListView";
+        SetDefaultSize(300, 300);
+
+        var stringList = StringList.New(["One", "Two", "Three", "Four"]);
+        var selectionModel = SingleSelection.New(stringList);
         var bytes = Assembly.GetExecutingAssembly()
             .ReadResourceAsByteArray("ListItemTemplate.ui");
-        var builderListItemFactory = BuilderListItemFactory.NewFromBytes(null, Bytes.New(bytes));
-        var listViewRight = ListView.New(singleSelectionModel, builderListItemFactory);
+        var listItemFactory = BuilderListItemFactory.NewFromBytes(null, Bytes.New(bytes));
+        var listView = ListView.New(selectionModel, listItemFactory);
 
-        var scrolledWindowRight = ScrolledWindow.New();
-        scrolledWindowRight.WidthRequest = 150;
-        scrolledWindowRight.Child = listViewRight;
-
-        var gtkBox = Gtk.Box.New(Gtk.Orientation.Horizontal, 0);
-        gtkBox.Append(scrolledWindow);
-        gtkBox.Append(scrolledWindowRight);
-
-        Child = gtkBox;
+        var scrolledWindow = ScrolledWindow.New();
+        scrolledWindow.Child = listView;
+        Child = scrolledWindow;
+    }
+}
 ```
 
-Running the sample now produces following window.  
+And I have added a button to show this new window on our application window in `Program.cs`.
+```csharp
+    var buttonShowTemplateListView = CreateButton("Show Template ListView Window");
+    buttonShowTemplateListView.OnClicked += (_, _) => new TemplateListViewWindow().Show();
+    ...
+    gtkBox.Append(buttonShowTemplateListView);
+```
+Window with ListItem template looks like following  
 <figure>
-  <a href="images/04-two-list-views.png"><img src="images/04-two-list-views.png"></a>
-  <figcaption>Empty Window</figcaption>
+  <a href="images/04-template-list-view.png"><img src="images/04-template-list-view.png"></a>
+  <figcaption>Window with ListItem Template</figcaption>
 </figure>  
 
+## Wrapup
+Here is how you can use Gtk ListView in your application, hopefully it would be a good starting point for anyone looking to start using ListView in C# with code or template.
 
 ## Source
 Source code for the sample application is available on GitHub in [gtk4-dotnet8-list-view](https://github.com/kashif-code-samples/gtk4-dotnet8-list-view) repository.

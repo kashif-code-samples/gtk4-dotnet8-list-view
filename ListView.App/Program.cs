@@ -3,11 +3,15 @@
 ﻿var application = Gtk.Application.New("org.kashif-code-samples.listview.sample", Gio.ApplicationFlags.FlagsNone);
 application.OnActivate += (sender, args) =>
 {
-    var buttonShowNoSelectionListView = CreateButton("Show No Selection ListView");
-    buttonShowNoSelectionListView.OnClicked += (_, _) => new NoSelectionListViewWindow().Show();
+    var buttonShowCodeListView = CreateButton("Show Code ListView Window");
+    buttonShowCodeListView.OnClicked += (_, _) => new CodeListViewWindow().Show();
+
+    var buttonShowTemplateListView = CreateButton("Show Template ListView Window");
+    buttonShowTemplateListView.OnClicked += (_, _) => new TemplateListViewWindow().Show();
 
     var gtkBox = Gtk.Box.New(Gtk.Orientation.Vertical, 0);
-    gtkBox.Append(buttonShowNoSelectionListView);
+    gtkBox.Append(buttonShowCodeListView);
+    gtkBox.Append(buttonShowTemplateListView);
 
     var window = Gtk.ApplicationWindow.New((Gtk.Application) sender);
     window.Title = "ListView Sample";
